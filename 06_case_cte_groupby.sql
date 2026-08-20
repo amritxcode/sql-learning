@@ -18,6 +18,7 @@ SELECT
     END AS age_group
 FROM customers;
 
+
 -- Q2. Order Classification
 -- Classify orders based on amount.
 
@@ -77,3 +78,77 @@ SELECT
 FROM customers
 INNER JOIN customer_spending
     ON customers.customer_id = customer_spending.customer_id;
+
+
+-- Q6. CTE + Filtering
+-- Display customers whose total spending is greater than 1000.
+
+WITH customer_spending AS (
+    SELECT
+        customer_id,
+        SUM(amount) AS total_spending
+    FROM orders
+    GROUP BY customer_id
+)
+SELECT
+    customers.name,
+    customer_spending.total_spending
+FROM customers
+INNER JOIN customer_spending
+    ON customers.customer_id = customer_spending.customer_id
+WHERE customer_spending.total_spending > 1000
+ORDER BY customer_spending.total_spending DESC;
+
+
+-- Q7. Customer Classification
+-- Classify customers based on their total spending.
+
+WITH customer_spending AS (
+    SELECT
+        customer_id,
+        SUM(amount) AS total_spending
+    FROM orders
+    GROUP BY customer_id
+)
+SELECT
+    customers.name,
+    customer_spending.total_spending,
+    CASE
+        WHEN customer_spending.total_spending >= 2000 THEN 'Premium'
+        WHEN customer_spending.total_spending >= 1000 THEN 'Regular'
+        ELSE 'Basic'
+    END AS customer_type
+FROM customers
+INNER JOIN customer_spending
+    ON customers.customer_id = customer_spending.customer_id;
+
+
+-- Q8. Final Day 6 Challenge
+-- Display customers with:
+-- name, city, total spending, order count, customer type
+-- Only Premium and Regular customers.
+-- Sort by spending from highest to lowest.
+
+WITH customer_stats AS (
+    SELECT
+        customer_id,
+        SUM(amount) AS total_spending,
+        COUNT(order_id) AS order_count
+    FROM orders
+    GROUP BY customer_id
+)
+SELECT
+    customers.name,
+    customers.city,
+    customer_stats.total_spending,
+    customer_stats.order_count,
+    CASE
+        WHEN customer_stats.total_spending >= 2000 THEN 'Premium'
+        WHEN customer_stats.total_spending >= 1000 THEN 'Regular'
+        ELSE 'Basic'
+    END AS customer_type
+FROM customers
+INNER JOIN customer_stats
+    ON customers.customer_id = customer_stats.customer_id
+WHERE customer_stats.total_spending >= 1000
+ORDER BY customer_stats.total_spending DESC;
